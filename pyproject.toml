@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autonomous-trading-platform"
+version = "0.1.0"
+authors = [
+  {name = "Your Team", email = "email@example.com"},
+]
+description = "Autonomous cryptocurrency trading platform using ADK"
+requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.black]
+line-length = 100
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".git", "__pycache__"]
+targets = ["."]
+skips = ["B101"]  # Skip assert statements in tests
+
+[tool.bandit.assert_used]
+skips = ["*_test.py", "test_*.py"]
+target-version = ['py313']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--cov=. --cov-report=term --cov-report=html"

@@ -1,0 +1,21 @@
+# Global owners - review required for all changes
+* @project-maintainers
+
+# Data pipeline
+/data-pipeline/ @data-team
+
+# Web UI
+/web-ui/ @frontend-team
+
+# Infrastructure
+/docker/ @devops-team
+.github/workflows/ @devops-team
+
+# Core services
+/adk-agent-dev/ @ml-team
+/adk-live-agent/ @ml-team
+/feature-eng/ @data-team
+/backtester/ @research-team
+
+# Documentation
+/docs/ @tech-writers @project-maintainers
