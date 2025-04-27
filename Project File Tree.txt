@@ -1,0 +1,49 @@
+/autonomous-trading-platform
+├── /data-pipeline
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   └── data_pipeline.py
+├── /feature-eng
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   └── feature_engineering.py
+├── /adk-agent-dev
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   ├── agent.py
+│   │   ├── tools
+│   │   │   ├── database_tool.py
+│   │   │   └── ccxt_info_tool.py
+├── /backtester
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   └── backtester.py
+├── /adk-live-agent
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   ├── live_agent.py
+│   │   ├── api.py
+│   │   ├── tools
+│   │   │   ├── ccxt_execution_tool.py
+│   │   │   └── risk_management_tool.py
+├── /web-ui
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src
+│   │   └── dashboard_app.py
+├── /docker
+│   ├── docker-compose.yml
+│   ├── docker-compose.prod.yml
+├── /secrets
+│   ├── .env.binance
+│   ├── .env.gcp
+├── /scripts
+│   └── setup.sh
+├── .gitignore
+├── README.md
+├── TODO.md

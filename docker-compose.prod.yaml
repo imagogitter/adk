@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  influxdb:
+    environment:
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
+    ports:
+      - "8086:8086" # Consider restricting in production
+
+  adk-live-agent:
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+  web-ui:
+    ports:
+      - "8050:8050" # Consider using a reverse proxy like Nginx in production

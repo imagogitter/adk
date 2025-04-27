@@ -1,0 +1,8 @@
+# Base requirements
+ccxt>=2.0.0
+pandas>=2.0.0
+numpy>=1.26.0
+influxdb-client>=1.36.0
+python-dotenv>=1.0.0
+
+# Make sure all packages are compatible with Python 3.13

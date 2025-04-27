@@ -1,0 +1,98 @@
+import os
+import ccxt
+import pandas as pd
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import WriteApi
+from dotenv import load_dotenv
+import time
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+
+def init_binance():
+    """Initialize Binance.us exchange with ccxt."""
+    return ccxt.binanceus({
+        'apiKey': os.getenv('BINANCE_API_KEY'),
+        'secret': os.getenv('BINANCE_SECRET_KEY'),
+        'enableRateLimit': True
+    })
+
+def fetch_ohlcv(exchange, symbol: str, timeframe: str, since: int, limit: int = 1000):
+    """Fetch OHLCV data with pagination."""
+    ohlcv = []
+    while True:
+        try:
+            data = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+            if not data:
+                break
+            ohlcv.extend(data)
+            since = data[-1][0] + 1
+            time.sleep(exchange.rateLimit / 1000)
+        except ccxt.NetworkError as e:
+            logger.error(f"Network error: {e}")
+            time.sleep(5)
+            continue
+        except ccxt.ExchangeError as e:
+            logger.error(f"Exchange error: {e}")
+            break
+    return ohlcv
+
+def clean_ohlcv(ohlcv_data):
+    """Clean OHLCV data using pandas."""
+    df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df.set_index('timestamp', inplace=True)
+    df.fillna(method='ffill', inplace=True)
+    df.drop_duplicates(inplace=True)
+    return df
+
+def write_to_influxdb(df, symbol: str, timeframe: str, write_api: WriteApi, bucket: str):
+    """Write OHLCV data to InfluxDB."""
+    for index, row in df.iterrows():
+        point = Point("market_data") \
+            .tag("symbol", symbol) \
+            .tag("timeframe", timeframe) \
+            .field("open", row['open']) \
+            .field("high", row['high']) \
+            .field("low", row['low']) \
+            .field("close", row['close']) \
+            .field("volume", row['volume']) \
+            .time(index, WritePrecision.NS)
+        try:
+            write_api.write(bucket=bucket, record=point)
+        except Exception as e:
+            logger.error(f"Failed to write point to InfluxDB: {e}")
+
+def main():
+    # Configuration
+    symbol = 'BTC/USDT'
+    timeframe = '1h'
+    since = int(pd.Timestamp('2023-01-01').timestamp() * 1000)
+
+    # Initialize clients
+    exchange = init_binance()
+    influx_client = InfluxDBClient(
+        url=os.getenv('INFLUXDB_URL'),
+        token=os.getenv('INFLUXDB_TOKEN'),
+        org=os.getenv('INFLUXDB_ORG')
+    )
+    write_api = influx_client.write_api()
+
+    # Fetch and process data
+    logger.info(f"Fetching OHLCV for {symbol} ({timeframe})")
+    ohlcv_data = fetch_ohlcv(exchange, symbol, timeframe, since)
+    if ohlcv_data:
+        df = clean_ohlcv(ohlcv_data)
+        logger.info(f"Writing {len(df)} records to InfluxDB")
+        write_to_influxdb(df, symbol, timeframe, write_api, os.getenv('INFLUXDB_BUCKET'))
+        logger.info("Data pipeline completed")
+    else:
+        logger.warning("No data fetched")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    ports:
+      - "8086:8086"
+    env_file:
+      - ../secrets/.env
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  data-pipeline:
+    build:
+      context: ../data-pipeline
+      dockerfile: Dockerfile
+    image: trading/data-pipeline:latest
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ../secrets/.env
+    volumes:
+      - ../data-pipeline/src:/app
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  feature-eng:
+    build:
+      context: ./feature-eng
+    env_file:
+      - ./secrets/.env.binance
+      - ./secrets/.env.gcp
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=trading-org
+      - INFLUXDB_BUCKET=market-data
+    depends_on:
+      - influxdb
+    volumes:
+      - shared-logs:/app/logs
+    networks:
+      - trading-network
+
+  adk-agent-dev:
+    build:
+      context: ./adk-agent-dev
+    env_file:
+      - ./secrets/.env.binance
+      - ./secrets/.env.gcp
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=trading-org
+      - INFLUXDB_BUCKET=market-data
+    depends_on:
+      - influxdb
+    volumes:
+      - agent-registry:/app/registry
+      - shared-logs:/app/logs
+    networks:
+      - trading-network
+
+  backtester:
+    build:
+      context: ./backtester
+    env_file:
+      - ./secrets/.env.binance
+      - ./secrets/.env.gcp
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=trading-org
+      - INFLUXDB_BUCKET=market-data
+    depends_on:
+      - influxdb
+    volumes:
+      - agent-registry:/app/registry:ro
+      - shared-logs:/app/logs
+    networks:
+      - trading-network
+
+  adk-live-agent:
+    build:
+      context: ./adk-live-agent
+    env_file:
+      - ./secrets/.env.binance
+      - ./secrets/.env.gcp
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=trading-org
+      - INFLUXDB_BUCKET=market-data
+      - FLASK_ENV=development
+    depends_on:
+      - influxdb
+    volumes:
+      - agent-registry:/app/registry:ro
+      - shared-logs:/app/logs
+      - state-data:/app/state
+    networks:
+      - trading-network
+
+  web-ui:
+    build:
+      context: ./web-ui
+    ports:
+      - "8050:8050"
+    env_file:
+      - ./secrets/.env.binance
+      - ./secrets/.env.gcp
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=trading-org
+      - INFLUXDB_BUCKET=market-data
+    depends_on:
+      - influxdb
+      - adk-live-agent
+    volumes:
+      - shared-logs:/app/logs:ro
+    networks:
+      - trading-network
+
+volumes:
+  influxdb-data:
+  agent-registry:
+  shared-logs:
+  state-data:
+
+networks:
+  trading-network:
+    driver: bridge
