@@ -26,11 +26,12 @@ services:
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN:-my-super-secret-token}
       - INFLUXDB_ORG=${INFLUXDB_ORG:-trading_org}
       - INFLUXDB_BUCKET=${INFLUXDB_BUCKET:-trading}
-      - EXCHANGE_ID=${EXCHANGE_ID:-binance}
+      - EXCHANGE_ID=${EXCHANGE_ID:-binanceus}
       - EXCHANGE_API_KEY=${EXCHANGE_API_KEY:-}
       - EXCHANGE_SECRET=${EXCHANGE_SECRET:-}
     volumes:
       - ./logs:/app/logs
+      - ../secrets:/app/secrets
     restart: unless-stopped
 
 volumes:
