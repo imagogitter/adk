@@ -19,7 +19,7 @@ def configure_logger(name=None, log_dir=None):
     """
     # Create logs directory if it doesn't exist
     if log_dir is None:
-        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+        log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
     os.makedirs(log_dir, exist_ok=True)
 
     logger = logging.getLogger(name)
@@ -30,28 +30,20 @@ def configure_logger(name=None, log_dir=None):
         logger.handlers.clear()
 
     # Create formatters
-    file_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    console_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(message)s'
-    )
+    file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    console_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     # Create file handler for info+ logs
     log_filename = f'{datetime.now().strftime("%Y-%m-%d")}.log'
     file_handler = logging.handlers.RotatingFileHandler(
-        os.path.join(log_dir, log_filename),
-        maxBytes=10485760,  # 10MB
-        backupCount=10
+        os.path.join(log_dir, log_filename), maxBytes=10485760, backupCount=10  # 10MB
     )
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(file_formatter)
 
     # Create file handler for error+ logs
     error_file_handler = logging.handlers.RotatingFileHandler(
-        os.path.join(log_dir, f'error_{log_filename}'),
-        maxBytes=10485760,  # 10MB
-        backupCount=10
+        os.path.join(log_dir, f"error_{log_filename}"), maxBytes=10485760, backupCount=10  # 10MB
     )
     error_file_handler.setLevel(logging.ERROR)
     error_file_handler.setFormatter(file_formatter)

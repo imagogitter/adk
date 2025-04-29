@@ -36,34 +36,34 @@ def get_env_bool(key: str, default: Optional[bool] = False) -> bool:
     if isinstance(value, bool):
         return value
     if isinstance(value, str):
-        return value.lower() in ('true', 'yes', '1', 'y')
+        return value.lower() in ("true", "yes", "1", "y")
     return bool(value)
 
 
 def get_config() -> Dict[str, Any]:
     """Get all configuration as a dictionary."""
     return {
-        'influxdb': {
-            'url': get_env('INFLUXDB_URL', 'http://localhost:8086'),
-            'token': get_env('INFLUXDB_TOKEN', required=True),
-            'org': get_env('INFLUXDB_ORG', required=True),
-            'bucket': get_env('INFLUXDB_BUCKET', 'trading_data'),
+        "influxdb": {
+            "url": get_env("INFLUXDB_URL", "http://localhost:8086"),
+            "token": get_env("INFLUXDB_TOKEN", required=True),
+            "org": get_env("INFLUXDB_ORG", required=True),
+            "bucket": get_env("INFLUXDB_BUCKET", "trading_data"),
         },
-        'exchange': {
-            'id': get_env('EXCHANGE_ID', 'binance'),
-            'api_key': get_env('EXCHANGE_API_KEY'),
-            'api_secret': get_env('EXCHANGE_API_SECRET'),
+        "exchange": {
+            "id": get_env("EXCHANGE_ID", "binance"),
+            "api_key": get_env("EXCHANGE_API_KEY"),
+            "api_secret": get_env("EXCHANGE_API_SECRET"),
         },
-        'trading': {
-            'position_size': get_env_decimal('POSITION_SIZE', '0.01'),
-            'max_positions': get_env_int('MAX_POSITIONS', 2),
-            'initial_capital': get_env_decimal('INITIAL_CAPITAL', '10000'),
+        "trading": {
+            "position_size": get_env_decimal("POSITION_SIZE", "0.01"),
+            "max_positions": get_env_int("MAX_POSITIONS", 2),
+            "initial_capital": get_env_decimal("INITIAL_CAPITAL", "10000"),
         },
-        'monitoring': {
-            'prometheus_port': get_env_int('PROMETHEUS_PORT', 8000),
-            'slack_token': get_env('SLACK_TOKEN'),
+        "monitoring": {
+            "prometheus_port": get_env_int("PROMETHEUS_PORT", 8000),
+            "slack_token": get_env("SLACK_TOKEN"),
         },
-        'web_ui': {
-            'port': get_env_int('WEB_UI_PORT', 8050),
+        "web_ui": {
+            "port": get_env_int("WEB_UI_PORT", 8050),
         },
     }

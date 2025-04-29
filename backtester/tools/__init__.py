@@ -1,1 +1,1 @@
-'''Tool implementations for ADK agent.'''
+"""Tool implementations for ADK agent."""
