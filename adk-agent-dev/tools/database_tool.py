@@ -1,14 +1,15 @@
 """InfluxDB integration tool for storing trading data."""
-import os
 import logging
+import os
 from datetime import datetime
-from typing import Dict, Optional, Any, List
+from typing import Any, Dict, List, Optional
 
+from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
-from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
 
 class DatabaseTool:
     """Tool for interacting with InfluxDB."""
@@ -17,16 +18,12 @@ class DatabaseTool:
         """Initialize database connection."""
         load_dotenv()
 
-        self.url = os.getenv('INFLUXDB_URL', 'http://influxdb:8086')
-        self.token = os.getenv('INFLUXDB_TOKEN', '')
-        self.org = os.getenv('INFLUXDB_ORG', '')
-        self.bucket = os.getenv('INFLUXDB_BUCKET', '')
+        self.url = os.getenv("INFLUXDB_URL", "http://influxdb:8086")
+        self.token = os.getenv("INFLUXDB_TOKEN", "")
+        self.org = os.getenv("INFLUXDB_ORG", "")
+        self.bucket = os.getenv("INFLUXDB_BUCKET", "")
 
-        self.client = InfluxDBClient(
-            url=self.url,
-            token=self.token,
-            org=self.org
-        )
+        self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
         self.query_api = self.client.query_api()
 
@@ -36,24 +33,21 @@ class DatabaseTool:
             point = {
                 "measurement": "trades",
                 "tags": {
-                    "symbol": trade['symbol'],
-                    "type": trade['type'],
-                    "paper_trade": trade.get('paper_trade', False)
+                    "symbol": trade["symbol"],
+                    "type": trade["type"],
+                    "paper_trade": trade.get("paper_trade", False),
                 },
                 "fields": {
-                    "price": float(trade['price']),
-                    "size": float(trade['size']),
-                    "value": float(trade['price']) * float(trade['size'])
+                    "price": float(trade["price"]),
+                    "size": float(trade["size"]),
+                    "value": float(trade["price"]) * float(trade["size"]),
                 },
-                "time": datetime.fromtimestamp(trade['timestamp'])
+                "time": datetime.fromtimestamp(trade["timestamp"]),
             }
-            
-            self.write_api.write(
-                bucket=self.bucket,
-                record=point
-            )
+
+            self.write_api.write(bucket=self.bucket, record=point)
             return True
-            
+
         except Exception as e:
             logger.error(f"Error writing trade record: {str(e)}")
             return False
@@ -69,25 +63,25 @@ class DatabaseTool:
                 |> filter(fn: (r) => r["timeframe"] == "{timeframe}")
                 |> last()
             """
-            
+
             result = self.query_api.query(query)
-            
+
             if not result or len(result) == 0:
                 return None
-                
+
             # Convert result to dictionary
             record = result[0].records[0]
             return {
-                'sma_20': record.get_value('sma_20', 0.0),
-                'sma_50': record.get_value('sma_50', 0.0),
-                'rsi_14': record.get_value('rsi_14', 50.0),
-                'macd': record.get_value('macd', 0.0),
-                'macd_signal': record.get_value('macd_signal', 0.0),
-                'bb_upper': record.get_value('bb_upper', 0.0),
-                'bb_middle': record.get_value('bb_middle', 0.0),
-                'bb_lower': record.get_value('bb_lower', 0.0)
+                "sma_20": record.get_value("sma_20", 0.0),
+                "sma_50": record.get_value("sma_50", 0.0),
+                "rsi_14": record.get_value("rsi_14", 50.0),
+                "macd": record.get_value("macd", 0.0),
+                "macd_signal": record.get_value("macd_signal", 0.0),
+                "bb_upper": record.get_value("bb_upper", 0.0),
+                "bb_middle": record.get_value("bb_middle", 0.0),
+                "bb_lower": record.get_value("bb_lower", 0.0),
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting indicators: {str(e)}")
             return None
@@ -102,25 +96,25 @@ class DatabaseTool:
                 |> filter(fn: (r) => r["symbol"] == "{symbol}")
                 |> limit(n: {limit})
             """
-            
+
             result = self.query_api.query(query)
-            
+
             trades = []
             for table in result:
                 for record in table.records:
                     trade = {
-                        'symbol': record.get_value('symbol'),
-                        'type': record.get_value('type'),
-                        'price': record.get_value('price'),
-                        'size': record.get_value('size'),
-                        'value': record.get_value('value'),
-                        'paper_trade': record.get_value('paper_trade'),
-                        'timestamp': record.get_time()
+                        "symbol": record.get_value("symbol"),
+                        "type": record.get_value("type"),
+                        "price": record.get_value("price"),
+                        "size": record.get_value("size"),
+                        "value": record.get_value("value"),
+                        "paper_trade": record.get_value("paper_trade"),
+                        "timestamp": record.get_time(),
                     }
                     trades.append(trade)
-                    
+
             return trades
-            
+
         except Exception as e:
             logger.error(f"Error getting trade history: {str(e)}")
             return []

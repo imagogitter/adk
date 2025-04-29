@@ -1,4 +1,3 @@
-
 services:
   influxdb:
     image: influxdb:latest
@@ -131,11 +130,28 @@ services:
     networks:
       - trading-network
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./adk-live-agent/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./adk-live-agent/grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
 volumes:
   db-data:
   agent-registry:
   shared-logs:
   state-data:
+  grafana-data:
 
 networks:
   trading-network:

@@ -1,0 +1,10 @@
+influxdb-client>=1.36.0
+pandas>=2.2.0
+numpy>=1.26.0
+quantstats>=0.0.59
+python-dotenv>=1.0.0
+setuptools>=69.0.0
+wheel>=0.42.0
+backtrader @ git+https://github.com/mementum/backtrader.git@0fa63ef4a35dc53cc7320813f8b15480c8f85517#egg=backtrader
+ccxt>=4.2.0
+ipython>=8.18.0
